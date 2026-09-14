@@ -134,12 +134,12 @@ Access the application at [http://localhost:3000](http://localhost:3000).
 ## 9. 90–120 Second Hackathon Demo Walkthrough
 
 1. **Launch Landing Page**: Open [http://localhost:3000](http://localhost:3000) and click **Launch Live Demo** (or **Open Demo Repo** in the dashboard topbar).
-2. **Review Initial Health**: Notice the repository starts at **Health Score: 42 / 100** with **5 controlled issues** detected (Missing dependency, bad import, failing test, missing env, tracked secrets).
+2. **Review Initial Health**: Notice the repository starts at **Health Score: 55 / 100** (Degraded) with **7 issues** detected across the 5 core categories (Missing dependency, bad import, TS type mismatch, missing env template, failing unit test, plus committed secret pattern).
 3. **Select Issue**: Click **Generate Repair** on `"Missing dependency: axios"`.
 4. **Inspect AI Diagnosis & Diff**: Review the 96% confidence root cause, safety review checklist, and unified diff preview in `package.json`.
 5. **Approve Fix**: Click **Apply Fix & Verify** (demonstrates mandatory human authorization).
 6. **Watch Live Verification**: Watch the isolated sandbox execute `npm install`, `npm test`, and `npm run build` in real-time.
-7. **Fix Confirmed**: View the **"FIX VERIFIED"** banner and the updated repository health score: **42 ───────────────→ 94 / 100**.
+7. **Fix Confirmed**: View the **"FIX VERIFIED"** banner and the updated repository health score dynamically recalculating to **96 / 100**.
 
 ---
 
