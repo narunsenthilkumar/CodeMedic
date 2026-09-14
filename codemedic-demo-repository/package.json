@@ -1,0 +1,17 @@
+{
+  "name": "codemedic-demo-repository",
+  "version": "1.0.0",
+  "description": "Deterministic broken repository for CodeMedic live hackathon demonstration",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "node -e \"console.log('Building project...'); console.log('Build completed successfully.');\"",
+    "test": "node test.js",
+    "lint": "node -e \"console.log('Linting passed')\""
+  },
+  "dependencies": {
+    "chalk": "^4.1.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

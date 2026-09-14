@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  codemedic:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: codemedic_app
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=file:./dev.db
+      - NODE_ENV=production
+      - AI_API_KEY=${AI_API_KEY:-}
+      - AI_MODEL=${AI_MODEL:-gpt-4o-mini}
+    volumes:
+      - codemedic_data:/app/prisma
+      - codemedic_workspaces:/app/.workspaces
+    restart: unless-stopped
+
+volumes:
+  codemedic_data:
+  codemedic_workspaces:
