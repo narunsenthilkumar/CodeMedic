@@ -3,13 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { IssueCard } from '@/components/IssueCard';
-import { AlertTriangle, Filter } from 'lucide-react';
+import { AlertTriangle, Filter, CheckCircle2 } from 'lucide-react';
 
 export default function IssuesPage() {
   const router = useRouter();
   const [issues, setIssues] = useState<any[]>([]);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [repairingIssueId, setRepairingIssueId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadIssues() {
@@ -35,6 +36,7 @@ export default function IssuesPage() {
 
   const handleGenerateRepair = async (issueId: string) => {
     try {
+      setRepairingIssueId(issueId);
       const res = await fetch(`/api/issues/${issueId}/repair`, { method: 'POST' });
       const data = await res.json();
       if (data.repairId) {
@@ -42,6 +44,8 @@ export default function IssuesPage() {
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setRepairingIssueId(null);
     }
   };
 
@@ -72,7 +76,7 @@ export default function IssuesPage() {
             <button
               key={cat}
               onClick={() => setCategoryFilter(cat)}
-              className={`px-2.5 py-1 rounded-md capitalize transition-colors ${
+              className={`px-2.5 py-1 rounded-md capitalize transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-teal-400 ${
                 categoryFilter === cat
                   ? 'bg-teal-600 text-white font-semibold'
                   : 'text-slate-400 hover:text-slate-200'
@@ -85,12 +89,17 @@ export default function IssuesPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="w-6 h-6 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+        <div className="flex flex-col items-center justify-center py-16 space-y-3">
+          <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+          <div className="text-xs font-mono text-slate-400">Loading detected issues...</div>
         </div>
       ) : filteredIssues.length === 0 ? (
-        <div className="p-8 text-center bg-slate-900 border border-slate-800 rounded-xl text-xs font-mono text-slate-400">
-          No issues found matching the selected filter.
+        <div className="p-12 text-center bg-slate-900 border border-slate-800 rounded-xl space-y-3">
+          <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
+          <h3 className="text-sm font-bold text-slate-200 font-mono">No issues detected.</h3>
+          <p className="text-xs font-mono text-slate-400 max-w-sm mx-auto">
+            Your repository passed the current CodeMedic checks. No open defects found in the selected category.
+          </p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -99,6 +108,7 @@ export default function IssuesPage() {
               key={issue.id}
               issue={issue}
               onGenerateRepair={handleGenerateRepair}
+              isRepairing={repairingIssueId === issue.id}
             />
           ))}
         </div>

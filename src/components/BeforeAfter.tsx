@@ -1,11 +1,11 @@
 import React from 'react';
-import { ArrowRight, CheckCircle2, XCircle, TrendingUp, Award } from 'lucide-react';
+import { ArrowRight, CheckCircle2, XCircle, TrendingUp, Award, ShieldCheck } from 'lucide-react';
 
 interface BeforeAfterProps {
-  beforeHealth?: number;
-  afterHealth?: number;
-  beforeIssues?: number;
-  afterIssues?: number;
+  beforeHealth: number;
+  afterHealth: number;
+  beforeIssues: number;
+  afterIssues: number;
   buildStatusBefore?: string;
   buildStatusAfter?: string;
   testsBefore?: string;
@@ -15,17 +15,20 @@ interface BeforeAfterProps {
 }
 
 export const BeforeAfter: React.FC<BeforeAfterProps> = ({
-  beforeHealth = 42,
-  afterHealth = 94,
-  beforeIssues = 5,
-  afterIssues = 0,
+  beforeHealth,
+  afterHealth,
+  beforeIssues,
+  afterIssues,
   buildStatusBefore = 'FAILED',
   buildStatusAfter = 'PASSED',
   testsBefore = '1 failing',
   testsAfter = 'All Passing',
-  isVerified = true,
+  isVerified = false,
   className = '',
 }) => {
+  const healthDelta = afterHealth - beforeHealth;
+  const issuesResolved = Math.max(0, beforeIssues - afterIssues);
+
   return (
     <div
       className={`p-6 rounded-xl border ${
@@ -45,19 +48,20 @@ export const BeforeAfter: React.FC<BeforeAfterProps> = ({
             </h3>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Measurable state transformation verified in isolated execution workspace.
+            Measurable state transformation verified in isolated sandbox execution workspace.
           </p>
         </div>
 
         {isVerified && (
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950 border border-emerald-800 text-emerald-300 text-xs font-mono font-medium">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            FIX VERIFIED
+            <span>FIX VERIFIED</span>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+      {/* 4-Metric Grid Comparison */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
         {/* Metric 1: Health Score */}
         <div className="p-4 bg-slate-950/60 rounded-lg border border-slate-800/80 flex flex-col justify-between">
           <div className="text-xs uppercase font-mono text-slate-400">
@@ -77,7 +81,7 @@ export const BeforeAfter: React.FC<BeforeAfterProps> = ({
           </div>
           <div className="flex items-center gap-1 text-[11px] text-emerald-400 font-mono mt-2">
             <TrendingUp className="w-3 h-3" />
-            <span>+{afterHealth - beforeHealth} pts gain</span>
+            <span>{healthDelta >= 0 ? `+${healthDelta}` : healthDelta} pts gain</span>
           </div>
         </div>
 
@@ -99,7 +103,7 @@ export const BeforeAfter: React.FC<BeforeAfterProps> = ({
             </span>
           </div>
           <div className="text-[11px] text-emerald-400 font-mono mt-2">
-            Resolved: {beforeIssues - afterIssues}/{beforeIssues}
+            Resolved: {issuesResolved}/{beforeIssues}
           </div>
         </div>
 
@@ -139,6 +143,19 @@ export const BeforeAfter: React.FC<BeforeAfterProps> = ({
           <div className="text-[11px] text-slate-400 font-mono mt-2">
             npm test
           </div>
+        </div>
+      </div>
+
+      {/* Side-by-Side Before/After State Comparison Panel */}
+      <div className="mt-4 p-3.5 bg-slate-950/80 rounded-lg border border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs">
+        <div className="w-full sm:w-1/2 flex items-center justify-between p-2 rounded bg-slate-900/60 border border-slate-800">
+          <span className="text-slate-400 uppercase font-bold">STATE BEFORE FIX:</span>
+          <span className="text-rose-400 font-semibold">{beforeIssues} issues • Health {beforeHealth} • Build FAILED</span>
+        </div>
+        <ArrowRight className="w-4 h-4 text-teal-400 shrink-0 hidden sm:block" />
+        <div className="w-full sm:w-1/2 flex items-center justify-between p-2 rounded bg-emerald-950/30 border border-emerald-800/50">
+          <span className="text-emerald-400 uppercase font-bold">STATE AFTER FIX:</span>
+          <span className="text-emerald-300 font-semibold">{afterIssues} open • Health {afterHealth} • {buildStatusAfter}</span>
         </div>
       </div>
     </div>
