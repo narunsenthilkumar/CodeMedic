@@ -1,0 +1,103 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Repository {
+  id             String     @id @default(cuid())
+  githubUrl      String
+  owner          String
+  name           String
+  defaultBranch  String     @default("main")
+  language       String     @default("TypeScript")
+  framework      String     @default("Node.js")
+  packageManager String     @default("npm")
+  localPath      String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  scans          Scan[]
+  activities     Activity[]
+}
+
+model Scan {
+  id              String     @id @default(cuid())
+  repositoryId    String
+  repository      Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  status          String     @default("pending") // pending, running, completed, failed
+  healthScore     Int        @default(0)
+  buildScore      Int        @default(0)
+  dependencyScore Int        @default(0)
+  codeScore       Int        @default(0)
+  securityScore   Int        @default(0)
+  testScore       Int        @default(0)
+  startedAt       DateTime   @default(now())
+  completedAt     DateTime?
+
+  issues          Issue[]
+}
+
+model Issue {
+  id           String    @id @default(cuid())
+  scanId       String
+  scan         Scan      @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  category     String    // build, dependency, code, security, test, configuration
+  severity     String    // critical, high, medium, low, info
+  title        String
+  description  String
+  filePath     String?
+  lineNumber   Int?
+  confidence   Float     @default(1.0)
+  evidence     String    // JSON array of strings
+  rootCause    String?
+  status       String    @default("open") // open, diagnosing, planned, applied, verified, rejected
+  priority     Int       @default(50) // 0-100 calculated
+  createdAt    DateTime  @default(now())
+
+  repairs      Repair[]
+}
+
+model Repair {
+  id            String            @id @default(cuid())
+  issueId       String
+  issue         Issue             @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  strategy      String
+  risk          String            @default("low") // low, medium, high
+  patch         String            // JSON diff / unified patch string
+  status        String            @default("proposed") // proposed, reviewing, approved, applying, applied, verifying, verified, failed, rejected
+  attemptNumber Int               @default(1)
+  aiReasoning   String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  verifications VerificationRun[]
+}
+
+model VerificationRun {
+  id          String   @id @default(cuid())
+  repairId    String
+  repair      Repair   @relation(fields: [repairId], references: [id], onDelete: Cascade)
+  buildStatus String   @default("not_run") // passed, failed, not_available, not_run
+  testStatus  String   @default("not_run") // passed, failed, not_available, not_run
+  lintStatus  String   @default("not_run") // passed, failed, not_available, not_run
+  exitCode    Int      @default(0)
+  stdout      String?
+  stderr      String?
+  success     Boolean  @default(false)
+  durationMs  Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model Activity {
+  id           String     @id @default(cuid())
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  type         String     // scan, diagnosis, patch, verification, health_update
+  message      String
+  metadata     String?    // JSON string
+  createdAt    DateTime   @default(now())
+}

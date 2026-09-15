@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { patchReviewAgent } from '@/lib/ai/agents/reviewer';
 
+export const runtime = 'nodejs';
+
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }

@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+export const runtime = 'nodejs';
+
 export async function GET() {
   try {
-    const repositories = await db.repository.findMany({
+    const rawRepositories = await db.repository.findMany({
       include: {
         scans: {
           orderBy: { startedAt: 'desc' },
@@ -13,10 +15,16 @@ export async function GET() {
       orderBy: { updatedAt: 'desc' },
     });
 
+    // Sanitize localPath so server filesystem paths are never leaked to client
+    const repositories = rawRepositories.map((repo) => {
+      const { localPath, ...safeRepo } = repo;
+      return safeRepo;
+    });
+
     return NextResponse.json({ repositories });
   } catch (error: any) {
     return NextResponse.json(
-      { error: 'Failed to fetch repositories', details: error.message },
+      { error: 'Failed to fetch repositories' },
       { status: 500 }
     );
   }

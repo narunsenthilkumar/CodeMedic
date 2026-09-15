@@ -1,8 +1,12 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { diagnosticianAgent } from '@/lib/ai/agents/diagnostician';
 import { DEMO_REPO_PATH } from '@/lib/demo/demoRepo';
 import { workspaceManager } from '@/lib/sandbox/workspace';
+
+export const runtime = 'nodejs';
+export const maxDuration = 30;
 
 export async function POST(
   req: NextRequest,

@@ -43,20 +43,18 @@ export async function loadDemoRepository() {
 
   // Run full scan on the demo repo
   const scanResult = await runFullScan(DEMO_REPO_PATH, false);
-
-  // Normalize initial health score to 42 if 5 controlled issues are present
-  const initialHealth = scanResult.issues.length >= 4 ? 42 : scanResult.health.overall;
+  const initialHealth = scanResult.health.overall;
 
   const scan = await db.scan.create({
     data: {
       repositoryId: repo.id,
       status: 'completed',
-      healthScore: initialHealth,
-      buildScore: 25,
-      dependencyScore: 30,
-      codeScore: 50,
-      securityScore: 70,
-      testScore: 35,
+      healthScore: scanResult.health.overall,
+      buildScore: scanResult.health.build,
+      dependencyScore: scanResult.health.dependencies,
+      codeScore: scanResult.health.codeQuality,
+      securityScore: scanResult.health.security,
+      testScore: scanResult.health.tests,
       completedAt: new Date(),
     },
   });

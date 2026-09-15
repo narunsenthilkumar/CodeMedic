@@ -8,6 +8,9 @@ import { runFullScan } from '@/lib/scanner';
 import { logger } from '@/lib/logger';
 import path from 'path';
 
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -33,7 +36,7 @@ export async function POST(
 
     const repoPath = repair.issue.scan.repository.localPath || DEMO_REPO_PATH;
     const sessionId = `apply_${repair.id}`;
-    const workspaceDir = path.join(process.cwd(), '.workspaces', `ws_${sessionId}`);
+    const workspaceDir = path.join(workspaceManager.getBaseDir(), `ws_${sessionId}`);
 
     // If workspace doesn't exist, recreate and apply patch
     if (!require('fs').existsSync(workspaceDir)) {

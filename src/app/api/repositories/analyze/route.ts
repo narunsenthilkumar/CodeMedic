@@ -5,6 +5,9 @@ import { analyzeProjectMetadata } from '@/lib/scanner/analyzer';
 import { logger } from '@/lib/logger';
 import path from 'path';
 
+export const runtime = 'nodejs';
+export const maxDuration = 30;
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -78,9 +81,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Sanitize localPath before responding to client
+    const { localPath: _omit, ...safeRepository } = repository;
+
     return NextResponse.json({
       success: true,
-      repository,
+      repository: safeRepository,
       metadata,
     });
   } catch (error: any) {

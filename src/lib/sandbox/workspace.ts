@@ -2,15 +2,53 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
+/**
+ * Resolves the writable base directory for isolated workspaces.
+ * In serverless environments like Vercel or AWS Lambda, process.cwd() is read-only (/var/task),
+ * so execution workspaces must reside in os.tmpdir() (/tmp).
+ */
+function getBaseWorkspaceDir(): string {
+  if (process.env.WORKSPACE_BASE_DIR) {
+    return process.env.WORKSPACE_BASE_DIR;
+  }
+
+  // Check if running on Vercel or other serverless containers where root filesystem is read-only
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    const tmpWorkspace = path.join(os.tmpdir(), 'codemedic-workspaces');
+    if (!fs.existsSync(tmpWorkspace)) {
+      fs.mkdirSync(tmpWorkspace, { recursive: true });
+    }
+    return tmpWorkspace;
+  }
+
+  // Local development / VM: attempt .workspaces under process.cwd(), fallback to os.tmpdir()
+  try {
+    const localDir = path.join(process.cwd(), '.workspaces');
+    if (!fs.existsSync(localDir)) {
+      fs.mkdirSync(localDir, { recursive: true });
+    }
+    return localDir;
+  } catch {
+    const fallbackTmp = path.join(os.tmpdir(), 'codemedic-workspaces');
+    if (!fs.existsSync(fallbackTmp)) {
+      fs.mkdirSync(fallbackTmp, { recursive: true });
+    }
+    return fallbackTmp;
+  }
+}
+
 export class WorkspaceManager {
   private baseDir: string;
 
   constructor() {
-    // Isolated workspace directory
-    this.baseDir = path.join(process.cwd(), '.workspaces');
-    if (!fs.existsSync(this.baseDir)) {
-      fs.mkdirSync(this.baseDir, { recursive: true });
-    }
+    this.baseDir = getBaseWorkspaceDir();
+  }
+
+  /**
+   * Returns the active base workspace directory.
+   */
+  getBaseDir(): string {
+    return this.baseDir;
   }
 
   /**
@@ -82,11 +120,14 @@ export class WorkspaceManager {
    */
   destroyWorkspace(workspacePath: string): void {
     try {
-      if (fs.existsSync(workspacePath) && workspacePath.includes('.workspaces')) {
+      if (
+        fs.existsSync(workspacePath) &&
+        (workspacePath.includes('.workspaces') || workspacePath.includes('codemedic-workspaces'))
+      ) {
         fs.rmSync(workspacePath, { recursive: true, force: true, maxRetries: 3 });
       }
     } catch {
-      // Ignore Windows file locking retries
+      // Ignore file locking cleanup retries
     }
   }
 }
@@ -94,7 +135,7 @@ export class WorkspaceManager {
 function copyDirectoryRecursive(src: string, dest: string): void {
   const entries = fs.readdirSync(src, { withFileTypes: true });
   for (const entry of entries) {
-    if (['node_modules', '.git', '.next', '.workspaces'].includes(entry.name)) {
+    if (['node_modules', '.git', '.next', '.workspaces', 'codemedic-workspaces'].includes(entry.name)) {
       continue;
     }
     const srcPath = path.join(src, entry.name);

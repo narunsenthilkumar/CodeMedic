@@ -4,6 +4,9 @@ import { runFullScan } from '@/lib/scanner';
 import { DEMO_REPO_PATH } from '@/lib/demo/demoRepo';
 import { logger } from '@/lib/logger';
 
+export const runtime = 'nodejs';
+export const maxDuration = 30;
+
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }

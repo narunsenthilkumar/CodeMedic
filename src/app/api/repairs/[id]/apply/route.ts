@@ -4,6 +4,8 @@ import { workspaceManager } from '@/lib/sandbox/workspace';
 import { DEMO_REPO_PATH } from '@/lib/demo/demoRepo';
 import { logger } from '@/lib/logger';
 
+export const runtime = 'nodejs';
+
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -104,7 +106,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       status: 'applied',
-      workspaceDir,
+      workspaceId: sessionId,
       patch,
       message: 'Patch applied successfully in isolated workspace. Proceed to verification.',
     });
